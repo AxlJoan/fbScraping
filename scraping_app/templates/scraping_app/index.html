@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Scraping de Facebook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fb-blue: #1877f2;
+      --fb-light-bg: #f0f2f5;
+      --fb-dark-bg: #18191a;
+      --fb-light-text: #050505;
+      --fb-dark-text: #e4e6eb;
+      --fb-border: #ccd0d5;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--fb-light-bg);
+      color: var(--fb-light-text);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    body.dark-mode {
+      background-color: var(--fb-dark-bg);
+      color: var(--fb-dark-text);
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .container {
+      background-color: #242526;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    }
+
+    h1 {
+      color: var(--fb-blue);
+    }
+
+    form {
+      margin-top: 1rem;
+    }
+
+    button, .logout {
+      background-color: var(--fb-blue);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      margin-top: 1rem;
+      margin-right: 0.5rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover, .logout:hover {
+      background-color: #165cdb;
+    }
+
+    .toggle-mode {
+      background: none;
+      border: 2px solid var(--fb-blue);
+      color: var(--fb-blue);
+      margin-top: 1rem;
+      border-radius: 5px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .toggle-mode:hover {
+      background-color: var(--fb-blue);
+      color: white;
+    }
+
+    .comentarios ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .comentarios li {
+      border-bottom: 1px solid var(--fb-border);
+      padding: 0.5rem 0;
+    }
+
+    body.dark-mode .comentarios li {
+      border-color: #3a3b3c;
+    }
+
+    /* Pantalla de carga */
+    #loading-screen {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      background: rgba(24, 119, 242, 0.9); /* Azul Facebook con transparencia */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      backdrop-filter: blur(8px);
+      animation: fade-in 0.5s ease-in-out;
+    }
+
+    .spinner {
+      width: 65px;
+      height: 65px;
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    #loading-screen p {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFFFFF;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+      letter-spacing: 1px;
+      animation: fade 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fade {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <p>Cargando datos...</p>
+  </div>
+
+  <div class="container">
+    <h1>Scraping de Comentarios en Facebook</h1>
+
+    <form method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Iniciar Scraping</button>
+    </form>
+
+    <a class="logout" href="login">Cerrar sesión</a>
+    <button class="toggle-mode" onclick="toggleDarkMode()" id="modeToggle">🌙 Modo oscuro</button>
+
+    {% if comentarios %}
+    <div class="comentarios">
+      <h2>Comentarios extraídos:</h2>
+      <ul>
+        {% for comentario in comentarios %}
+        <li>
+          <strong>{{ comentario.nombre }}</strong>: {{ comentario.texto }}<br>
+          <a href="{{ comentario.perfil }}" target="_blank">Ver perfil</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const loader = document.getElementById("loading-screen");
+      loader.style.display = "none";
+
+      document.querySelectorAll("form").forEach(function (form) {
+        form.addEventListener("submit", function () {
+          loader.style.display = "flex";
+        });
+      });
+
+      document.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          if (link.href && !link.href.includes("#")) {
+            loader.style.display = "flex";
+          }
+        });
+      });
+    });
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      updateModeText(isDark);
+    }
+
+    function updateModeText(isDark) {
+      const toggleButton = document.getElementById('modeToggle');
+      toggleButton.textContent = isDark ? '☀️ Modo claro' : '🌙 Modo oscuro';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedMode = localStorage.getItem('darkMode') === 'true';
+      if (savedMode) document.body.classList.add('dark-mode');
+      updateModeText(savedMode);
+    });
+  </script>
+</body>
+</html>
