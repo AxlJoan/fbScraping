@@ -35,7 +35,7 @@
 
     .container {
       text-align: center;
-      max-width: 600px;
+      max-width: 90%;
       width: 90%;
       background-color: white;
       padding: 2rem;
@@ -102,6 +102,148 @@
       border-color: #3a3b3c;
     }
 
+    /* Tabla estilizada compatible con modo claro/oscuro */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        word-break: break-word;
+        white-space: normal;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* Encabezado */
+    .data-table th {
+        background-color: var(--th-bg, #f5f5f5);
+        color: var(--th-text, #333);
+        padding: 12px;
+        text-align: center;
+        font-weight: bold;
+        border: 1px solid #ccc; /* borde entre columnas */
+    }
+
+    /* Filas */
+    .data-table td {
+        padding: 12px;
+        color: var(--td-text, #333);
+        background-color: var(--td-bg, #fff);
+        border: 1px solid #ddd; /* borde entre columnas y filas */
+    }
+
+    /* Hover en filas */
+    .data-table tbody tr:hover {
+        background-color: var(--hover-bg, #f0f0f0);
+    }
+
+    /* Modo oscuro */
+    body.dark-mode .data-table th {
+        --th-bg: #222;
+        --th-text: #eee;
+        border: 1px solid #444;
+    }
+
+    body.dark-mode .data-table td {
+        --td-bg: #111;
+        --td-text: #ddd;
+        border: 1px solid #333;
+    }
+
+    body.dark-mode .data-table tbody tr:hover {
+        --hover-bg: #1a1a1a;
+    }
+
+    /* Botones de descarga con tono Excel */
+    .btn-download {
+    display: inline-block;
+    padding: 10px 16px;
+    margin: 8px 5px 0 0;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    background-color: #28a745; /* Verde tipo Excel */
+    transition: background-color 0.3s ease;
+    }
+
+    .btn-download:hover {
+    background-color: #218838;
+    }
+
+    /* Contenedor general del formulario */
+    form {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: var(--form-bg, #f9f9f9);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Agrupación de elementos */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    /* Etiquetas */
+    form label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--label-color, #333);
+        font-weight: 500;
+    }
+
+    /* Campos de entrada */
+    form input[type="text"],
+    form input[type="url"],
+    form input[type="email"],
+    form textarea,
+    form select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        background-color: var(--input-bg, #E9E9E9);
+        color: var(--input-color, #161b33);
+        border: 1px solid var(--input-border, #ccc);
+        border-radius: 5px;
+        margin-bottom: 10px;
+        transition: border-color 0.3s;
+        text-align: center;
+    }
+
+    form input:focus,
+    form textarea:focus,
+    form select:focus {
+        border-color: #4285f4;
+        outline: none;
+    }
+
+    /* Botón */
+    form button[type="submit"] {
+        background-color: #2563eb;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    form button[type="submit"]:hover {
+        background-color: #1e40af;
+    }
+
+    /* Modo oscuro */
+    body.dark-mode form {
+        --form-bg: #1a1a1a;
+        --label-color: #ddd;
+        --input-bg: #2a2a2a;
+        --input-color: #eee;
+        --input-border: #444;
+    }
+
     /* Pantalla de carga */
     #loading-screen {
       position: fixed;
@@ -153,6 +295,32 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
+
+    body.dark-mode #loading-screen {
+        background: rgba(0, 0, 0, 0.85); /* fondo más oscuro */
+    }
+
+    body.dark-mode .spinner {
+        border: 6px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #00ffcc; /* Color llamativo en modo oscuro */
+        box-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+    }
+
+    body.dark-mode #loading-screen p {
+        color: #00ffcc;
+        text-shadow: 0 0 10px rgba(0, 255, 204, 0.9);
+    }
+
+    /* Aplica a las celdas <th> y <td> con la clase number-col */
+    .data-table th.number-col,
+    .data-table td.number-col {
+    min-width: 150px; /* Ajusta a tu preferencia */
+    }
+
+    .pad-col {
+      padding: 15px !important;
+    }
+
   </style>
 </head>
 <body>
@@ -166,66 +334,119 @@
     <h1>Scraping de Comentarios en Facebook</h1>
 
     <form method="POST">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Iniciar Scraping</button>
-    </form>
+        {% csrf_token %}
+        <div class="form-group">
+          {{ form.url.label_tag }}
+          {{ form.url }}
+        </div>
+        <button type="submit">Iniciar Scraping</button>
+    </form>      
 
     <a class="logout" href="login">Cerrar sesión</a>
     <button class="toggle-mode" onclick="toggleDarkMode()" id="modeToggle">🌙 Modo oscuro</button>
 
     {% if comentarios %}
-    <div class="comentarios">
-      <h2>Comentarios extraídos:</h2>
-      <ul>
-        {% for comentario in comentarios %}
-        <li>
-          <strong>{{ comentario.nombre }}</strong>: {{ comentario.texto }}<br>
-          <a href="{{ comentario.perfil }}" target="_blank">Ver perfil</a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
+        <h3>Comentarios extraídos:</h3>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Comentario</th>
+                <th class="pad-col number-col">Perfil</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for c in comentarios %}
+            <tr>
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.texto }}</td>
+                <td class="pad-col"><a href="{{ c.perfil }}" target="_blank">Ver perfil</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        <a href="{% url 'exportar_csv' %}" class="btn-download">⬇ Descargar CSV</a>
+        <a href="{% url 'exportar_excel' %}" class="btn-download">⬇ Descargar Excel</a>
     {% endif %}
+
+    {% if data %}
+      <h2>Coincidencias</h2>
+      <table class="data-table">
+        <tr>
+          <th>Nombre</th>
+          <th>Comentario</th>
+          <th class="pad-col number-col">Perfil</th>
+        </tr>
+        {% for item in data %}
+        <tr>
+          <td>{{ item.nombre }}</td>
+          <td>{{ item.texto }}</td>
+          <td class="pad-col"><a href="{{ item.perfil }}" target="_blank">Ver perfil</a></td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const loader = document.getElementById("loading-screen");
       loader.style.display = "none";
-
-      document.querySelectorAll("form").forEach(function (form) {
-        form.addEventListener("submit", function () {
-          loader.style.display = "flex";
-        });
-      });
-
+  
       document.querySelectorAll("a").forEach(function (link) {
-        link.addEventListener("click", function (event) {
-          if (link.href && !link.href.includes("#")) {
-            loader.style.display = "flex";
-          }
-        });
+      link.addEventListener("click", function (event) {
+        const href = link.getAttribute("href") || "";
+
+        // Evita el loader si:
+        // - El enlace es un ancla
+        // - Descarga un archivo
+        // - Es una exportación
+        // - El enlace es externo (otro dominio)
+        if (
+          href.includes("#") ||
+          href.endsWith(".csv") ||
+          href.endsWith(".xlsx") ||
+          href.includes("exportar") ||
+          link.hostname !== location.hostname
+        ) return;
+
+        loader.style.display = "flex";
+        applyLoadingModeStyle();
       });
     });
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDark);
-      updateModeText(isDark);
-    }
-
-    function updateModeText(isDark) {
-      const toggleButton = document.getElementById('modeToggle');
-      toggleButton.textContent = isDark ? '☀️ Modo claro' : '🌙 Modo oscuro';
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const savedMode = localStorage.getItem('darkMode') === 'true';
-      if (savedMode) document.body.classList.add('dark-mode');
+  
+      // Restaurar modo oscuro si estaba activo
+      const savedMode = localStorage.getItem("darkMode") === "true";
+      if (savedMode) document.body.classList.add("dark-mode");
       updateModeText(savedMode);
     });
+  
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("darkMode", isDark);
+      updateModeText(isDark);
+    }
+  
+    function updateModeText(isDark) {
+      const toggleButton = document.getElementById("modeToggle");
+      toggleButton.textContent = isDark ? "☀️ Modo claro" : "🌙 Modo oscuro";
+    }
+  
+    function applyLoadingModeStyle() {
+      const loader = document.getElementById("loading-screen");
+      if (document.body.classList.contains("dark-mode")) {
+        loader.style.background = "rgba(0, 0, 0, 0.85)";
+        loader.querySelector("p").style.color = "#fff";
+      } else {
+        loader.style.background = "rgba(24, 119, 242, 0.9)";
+        loader.querySelector("p").style.color = "#ffffff";
+      }
+    }
   </script>
+  
 </body>
 </html>

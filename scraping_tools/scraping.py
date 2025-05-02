@@ -101,7 +101,7 @@ def ejecutar_scraping(url_publicacion):
         # Scroll para cargar todos los comentarios
         print("Iniciando scroll mejorado para cargar todos los comentarios...")
         num_comentarios_anterior = 0
-        max_intentos_sin_cambio = 8
+        max_intentos_sin_cambio = 4
         intentos_sin_cambio = 0
         max_intentos_totales = 50
         
@@ -428,3 +428,4 @@ def ejecutar_scraping(url_publicacion):
             print(f"Error al guardar screenshot: {str(e)}")
             
         driver.quit()
+        return comentarios_extraidos
