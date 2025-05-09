@@ -25,6 +25,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
     path('exportar-csv/', views.exportar_csv, name='exportar_csv'),
+    path('exportar-pdf/', views.exportar_pdf, name='exportar_pdf'),
+    path('exportar-word/', views.exportar_word, name='exportar_word'),
     path('exportar-excel/', views.exportar_excel, name='exportar_excel'),
-    path('comparar/', views.comparar_perfiles_view, name='comparar_perfiles'),
+    path('buscar-comentario/', views.buscar_comentario, name='buscar_comentario'),
 ]
