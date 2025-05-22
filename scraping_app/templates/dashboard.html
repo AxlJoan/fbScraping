@@ -1,0 +1,762 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Facebook Scraper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+<style>
+    :root {
+      --fb-blue: #1877f2;
+      --fb-blue-hover: #165cdb;
+      --fb-light-bg: #f0f2f5;
+      --fb-dark-bg: #18191a;
+      --fb-light-text: #050505;
+      --fb-dark-text: #e4e6eb;
+      --fb-border: #ccd0d5;
+      --container-bg: #ffffff;
+      --container-shadow: rgba(0, 0, 0, 0.1);
+      --table-header-bg: #f5f5f5;
+      --table-header-text: #333;
+      --table-cell-bg: #ffffff;
+      --table-cell-text: #333;
+      --table-hover-bg: #f0f0f0;
+      --table-border: #ddd;
+      --form-bg: #f9f9f9;
+      --label-color: #333;
+      --input-bg: #E9E9E9;
+      --input-text: #161b33;
+      --input-border: #ccc;
+    }
+
+    /* Dark mode variables */
+    body.dark-mode {
+      --container-bg: #242526;
+      --container-shadow: rgba(255, 255, 255, 0.05);
+      --table-header-bg: #222;
+      --table-header-text: #eee;
+      --table-cell-bg: #111;
+      --table-cell-text: #ddd;
+      --table-hover-bg: #1a1a1a;
+      --table-border: #333;
+      --form-bg: #1a1a1a;
+      --label-color: #ddd;
+      --input-bg: #2a2a2a;
+      --input-text: #eee;
+      --input-border: #444;
+    }
+
+    /* Base styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--fb-light-bg);
+      color: var(--fb-light-text);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    body.dark-mode {
+      background-color: var(--fb-dark-bg);
+      color: var(--fb-dark-text);
+    }
+
+    /* Layout components */
+    .container {
+      text-align: center;
+      max-width: 90%;
+      width: 90%;
+      background-color: var(--container-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px var(--container-shadow);
+      margin: 20px 0;
+    }
+
+    .dashboard-layout {
+    display: flex;
+    min-height: 100vh; /* hace que ocupe toda la altura de la pantalla */
+    width: 100%;
+    margin: 0; /* elimina el centrado */
+    gap: 24px;
+    background-color: var(--body-bg); /* por si tienes color de fondo definido */
+    }
+
+    /* Sidebar fija a la izquierda */
+    .sidebar {
+    flex: 0 0 260px; /* ancho fijo */
+    background-color: var(--container-bg);
+    padding: 1.5rem;
+    border-radius: 0 12px 12px 0; /* esquinas redondeadas solo a la derecha */
+    box-shadow: 0 2px 8px var(--container-shadow);
+    min-height: 100vh; /* asegura que tenga el alto completo */
+    }
+
+    /* Contenido principal */
+    .main-content {
+    flex: 1; /* ocupa el resto del espacio */
+    background-color: var(--container-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--container-shadow);
+    margin-right: 24px; /* para que no quede tan pegado al borde derecho */
+    }
+
+    /* Typography */
+    h1 {
+      color: var(--fb-blue);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Buttons */
+    button, .logout {
+      background-color: var(--fb-blue);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      margin: 1rem 0.5rem 0 0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover, .logout:hover {
+      background-color: var(--fb-blue-hover);
+    }
+
+    .toggle-mode {
+      background: none;
+      border: 2px solid var(--fb-blue);
+      color: var(--fb-blue);
+      margin-top: 1rem;
+      border-radius: 5px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-mode:hover {
+      background-color: var(--fb-blue);
+      color: white;
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      word-break: break-word;
+      white-space: normal;
+      box-shadow: 0 2px 10px var(--container-shadow);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .data-table th {
+      background-color: var(--table-header-bg);
+      color: var(--table-header-text);
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid var(--table-border);
+    }
+
+    .data-table td {
+      padding: 12px;
+      color: var(--table-cell-text);
+      background-color: var(--table-cell-bg);
+      border: 1px solid var(--table-border);
+    }
+
+    .data-table tbody tr:hover {
+      background-color: var(--table-hover-bg);
+    }
+
+    .data-table th.number-col,
+    .data-table td.number-col {
+      min-width: 150px;
+    }
+
+    .pad-col {
+      padding: 15px !important;
+    }
+
+    /* Forms */
+    form {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: var(--form-bg);
+      box-shadow: 0 2px 8px var(--container-shadow);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--label-color);
+      font-weight: 500;
+    }
+
+    form input[type="text"],
+    form input[type="url"],
+    form input[type="email"],
+    form textarea,
+    form select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      background-color: var(--input-bg);
+      color: var(--input-text);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      margin-bottom: 10px;
+      transition: border-color 0.3s;
+      text-align: center;
+    }
+
+    form input:focus,
+    form textarea:focus,
+    form select:focus {
+      border-color: #4285f4;
+      outline: none;
+    }
+
+    /* Download buttons */
+    .btn-download {
+      display: inline-block;
+      padding: 10px 16px;
+      margin: 8px 5px 0 0;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      text-decoration: none;
+      color: white;
+      background-color: #28a745;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-download:hover {
+      background-color: #218838;
+    }
+
+    .pdf-btn {
+      background-color: #e74c3c;
+    }
+
+    .pdf-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .word-btn {
+      background-color: #2c3e50;
+    }
+
+    .word-btn:hover {
+      background-color: #1a252f;
+    }
+
+    /* Comments section */
+    .comentarios ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .comentarios li {
+      border-bottom: 1px solid var(--fb-border);
+      padding: 0.5rem 0;
+    }
+
+    /* Pagination */
+    .pagination-controls {
+      margin: 20px auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+    }
+
+    .pagination-controls button {
+      padding: 8px 16px;
+      background-color: var(--table-header-bg);
+      color: var(--table-header-text);
+      border: 1px solid var(--table-border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-width: 80px;
+    }
+
+    .pagination-controls button:hover:not(:disabled) {
+      background-color: var(--table-hover-bg);
+      transform: translateY(-1px);
+    }
+
+    .pagination-controls button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .page-info {
+      margin: 0 12px;
+      color: var(--label-color);
+      font-size: 14px;
+    }
+
+    /* Loading screen */
+    #loading-screen {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      background: rgba(24, 119, 242, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      backdrop-filter: blur(8px);
+      animation: fade-in 0.5s ease-in-out;
+    }
+
+    body.dark-mode #loading-screen {
+      background: rgba(0, 0, 0, 0.85);
+    }
+
+    .spinner {
+      width: 65px;
+      height: 65px;
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    body.dark-mode .spinner {
+      border-top-color: #00ffcc;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+    }
+
+    #loading-screen p {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFFFFF;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+      letter-spacing: 1px;
+      animation: fade 1.5s infinite alternate ease-in-out;
+    }
+
+    body.dark-mode #loading-screen p {
+      color: #00ffcc;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.9);
+    }
+
+    /* Utility classes */
+    .report-buttons {
+      margin: 20px 0 30px;
+    }
+
+    .table-container {
+      margin-bottom: 20px;
+    }
+
+    /* Animations */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fade {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+</style>
+</head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-filter"></i> Filtros</h2>
+      <form method="get" action=".">
+        <div class="form-group">
+          <label for="desde">Desde</label>
+          <input type="date" id="desde" name="desde" value="{{ filtros.desde }}">
+        </div>
+        <div class="form-group">
+          <label for="hasta">Hasta</label>
+          <input type="date" id="hasta" name="hasta" value="{{ filtros.hasta }}">
+        </div>
+
+        {% if is_staff %}
+        <div class="form-group">
+          <label for="cliente">Cliente</label>
+          <select id="cliente" name="cliente">
+            <option value="">-- Todos --</option>
+            {% for c in clientes %}
+              <option value="{{ c.id }}" {% if c.id == filtros.cliente_id %}selected{% endif %}>{{ c.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="form-group">
+            <label for="palabra_clave">Palabra clave</label>
+            <input type="text" id="palabra_clave" name="palabra_clave" value="{{ filtros.palabra_clave }}">
+        </div>
+
+        <div class="form-group">
+            <label for="empleado">Empleado</label>
+            <select id="empleado" name="empleado">
+                <option value="">-- Todos --</option>
+                {% for e in empleados %}
+                <option value="{{ e.id }}" {% if e.id == filtros.empleado_id %}selected{% endif %}>{{ e.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit"><i class="fas fa-search"></i> Aplicar filtros</button>
+        <button type="button" class="toggle-mode" id="modeToggle">
+            <i class="fas fa-moon"></i> Alternar modo oscuro
+        </button>
+      </form>
+      <form method="post" action="{% url 'logout' %}" style="margin-top: 2rem;">
+        {% csrf_token %}
+        <button type="submit" class="logout">Cerrar sesión</button>
+      </form>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <h1>Dashboard</h1>
+
+      <!-- Métricas -->
+      <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 180px; background: var(--fb-blue); color: white; padding: 1rem; border-radius: 10px; text-align: center;">
+          <h3>Publicaciones únicas</h3>
+          <p style="font-size: 2rem;">{{ total_posts }}</p>
+        </div>
+        <div style="flex: 1; min-width: 180px; background: #4caf50; color: white; padding: 1rem; border-radius: 10px; text-align: center;">
+          <h3>Total comentarios</h3>
+          <p style="font-size: 2rem;">{{ total_comentarios }}</p>
+        </div>
+        <div style="flex: 1; min-width: 180px; background: #f39c12; color: white; padding: 1rem; border-radius: 10px; text-align: center;">
+          <h3>Total coincidencias</h3>
+          <p style="font-size: 2rem;">{{ total_coincidencias }}</p>
+        </div>
+        <div style="flex: 1; min-width: 180px; background: #e74c3c; color: white; padding: 1rem; border-radius: 10px; text-align: center;">
+          <h3>% coincidencias</h3>
+          <p style="font-size: 2rem;">{{ porcentaje_coincidencias }}%</p>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 30px;">
+        <!-- Gráfica de barras -->
+        <div style="flex: 1; min-width: 300px; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center;">
+            <h3 style="text-align: center; margin-bottom: 1.5rem; color: #1877f2;">Coincidencias por día</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gráfica de pastel -->
+        <div style="flex: 1; min-width: 300px; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h3 style="text-align: center; margin-bottom: 1.5rem; color: #1877f2;">Distribución empleados vs no empleados</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+      <!-- Tabla coincidencias -->
+      <section class="table-container">
+        <h2>Coincidencias (Empleados)</h2>
+        <table class="data-table" data-items-per-page="10" data-animate="true">
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Perfil del Empleado</th>
+              <th>Comentario</th>
+              <th>Fecha</th>
+              <th>Post URL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in coincidencias %}
+            <tr>
+              <td>{{ c.empleado_nombre }}</td>
+              <td><a href="{{ c.usuario_url }}" target="_blank">Perfil</a></td>
+              <td>{{ c.texto|truncatechars:80 }}</td>
+              <td>{{ c.fecha|date:"Y-m-d H:i" }}</td>
+              <td><a href="{{ c.post_url }}" target="_blank">Ver post</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No hay coincidencias en el rango seleccionado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {% if data %}
+        <div class="report-buttons">
+            <a href="{% url 'exportar_pdf' %}?post_url={{ coincidencias.0.post_url }}" class="btn-download pdf-btn">Descargar PDF</a>
+            <a href="{% url 'exportar_word' %}?post_url={{ coincidencias.0.post_url }}" class="btn-download word-btn">Descargar Word</a>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- Tabla comentarios -->
+      <section class="table-container">
+        <h2>Comentarios generales</h2>
+        <table class="data-table" data-items-per-page="20" data-animate="true">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Perfil del usuario</th>
+              <th>Comentario</th>
+              <th>Fecha</th>
+              <th>Post URL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for com in comentarios %}
+            <tr>
+              <td>{{ com.usuario_nombre }}</td>
+              <td><a href="{{ com.usuario_url }}" target="_blank">Perfil</a></td>
+              <td>{{ com.texto|truncatechars:80 }}</td>
+              <td>{{ com.fecha|date:"Y-m-d H:i" }}</td>
+              <td><a href="{{ com.post_url }}" target="_blank">Ver post</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No hay comentarios en el rango seleccionado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- Paginación JS -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      function initPagination(table) {
+          const itemsPerPage = parseInt(table.getAttribute('data-items-per-page')) || 10;
+          const rows = table.querySelectorAll('tbody tr');
+          const paginationContainer = table.closest('.table-container').querySelector('.pagination-controls');
+          const prevBtn = paginationContainer.querySelector('.prev-page');
+          const nextBtn = paginationContainer.querySelector('.next-page');
+          const currentPageSpan = paginationContainer.querySelector('.current-page');
+          const totalPagesSpan = paginationContainer.querySelector('.total-pages');
+          
+          let currentPage = 1;
+          const totalPages = Math.ceil(rows.length / itemsPerPage);
+          totalPagesSpan.textContent = totalPages;
+          
+          function updatePagination() {
+              // Mostrar solo las filas de la página actual
+              rows.forEach((row, index) => {
+                  const start = (currentPage - 1) * itemsPerPage;
+                  const end = start + itemsPerPage;
+                  
+                  row.style.display = (index >= start && index < end) ? '' : 'none';
+              });
+              
+              // Actualizar controles
+              prevBtn.disabled = currentPage === 1;
+              nextBtn.disabled = currentPage === totalPages;
+              currentPageSpan.textContent = currentPage;
+              
+              // Efecto visual al cambiar página
+              if (table.getAttribute('data-animate') === 'true') {
+                  table.style.opacity = '0.7';
+                  setTimeout(() => {
+                      table.style.opacity = '1';
+                  }, 200);
+              }
+          }
+          
+          // Event listeners
+          prevBtn.addEventListener('click', () => {
+              if (currentPage > 1) {
+                  currentPage--;
+                  updatePagination();
+              }
+          });
+          
+          nextBtn.addEventListener('click', () => {
+              if (currentPage < totalPages) {
+                  currentPage++;
+                  updatePagination();
+              }
+          });
+          
+          // Inicializar
+          updatePagination();
+      }
+      
+      // Inicializar paginación para todas las tablas
+      document.querySelectorAll('.data-table').forEach(table => {
+          // Solo si no tiene ya controles de paginación
+          if (!table.closest('.table-container').querySelector('.pagination-controls')) {
+              // Crear controles dinámicamente si es necesario
+              const paginationHTML = `
+                  <div class="pagination-wrapper">
+                      <div class="pagination-controls">
+                          <button class="prev-page" disabled>
+                              <span class="pagination-icon">←</span> Anterior
+                          </button>
+                          <span class="page-info">Página <span class="current-page">1</span> de <span class="total-pages">1</span></span>
+                          <button class="next-page">
+                              Siguiente <span class="pagination-icon">→</span>
+                          </button>
+                      </div>
+                  </div>
+              `;
+              table.closest('.table-container').insertAdjacentHTML('beforeend', paginationHTML);
+          }
+          initPagination(table);
+      });
+  });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const loader = document.getElementById("loading-screen");
+    if (loader) loader.style.display = "none";
+
+    // Evitar recarga al hacer clic en enlaces válidos
+    document.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function (event) {
+        const href = link.getAttribute("href") || "";
+        if (
+            href.includes("#") ||
+            href.endsWith(".csv") ||
+            href.endsWith(".xlsx") ||
+            href.includes("exportar") ||
+            link.hostname !== location.hostname
+        ) return;
+
+        if (loader) {
+            loader.style.display = "flex";
+            applyLoadingModeStyle();
+        }
+        });
+    });
+
+    // Restaurar modo oscuro
+    const savedMode = localStorage.getItem("darkMode") === "true";
+    if (savedMode) document.body.classList.add("dark-mode");
+    updateModeText(savedMode);
+
+    // Asignar evento al botón de modo oscuro
+    const toggleButton = document.getElementById("modeToggle");
+    if (toggleButton) {
+        toggleButton.addEventListener("click", function (e) {
+        e.preventDefault(); // Previene cualquier comportamiento por defecto
+        toggleDarkMode();
+        });
+    }
+    });
+
+    function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+    const isDark = document.body.classList.contains("dark-mode");
+    localStorage.setItem("darkMode", isDark);
+    updateModeText(isDark);
+    }
+
+    function updateModeText(isDark) {
+    const toggleButton = document.getElementById("modeToggle");
+    if (toggleButton) {
+        toggleButton.textContent = isDark ? "☀️ Modo claro" : "🌙 Modo oscuro";
+    }
+    }
+
+    function applyLoadingModeStyle() {
+    const loader = document.getElementById("loading-screen");
+    if (!loader) return;
+    const loadingText = loader.querySelector("p");
+
+    if (document.body.classList.contains("dark-mode")) {
+        loader.style.background = "rgba(0, 0, 0, 0.85)";
+        if (loadingText) loadingText.style.color = "#fff";
+    } else {
+        loader.style.background = "rgba(24, 119, 242, 0.9)";
+        if (loadingText) loadingText.style.color = "#ffffff";
+    }
+    }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Opciones comunes para ambos gráficos
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right', // Para el gráfico de pastel
+            }
+        }
+    };
+
+    // Gráfico de pastel
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Empleados', 'No empleados'],
+            datasets: [{
+                data: [{{ total_coincidencias }}, {{ no_empleados }}],
+                backgroundColor: ['#36A2EB', '#e74c3c'],
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                legend: {
+                    ...commonOptions.plugins.legend,
+                    align: 'center' // Centra la leyenda
+                }
+            }
+        }
+    });
+
+    // Gráfico de barras
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ coincidencias_labels|safe }},
+            datasets: [{
+                label: 'Coincidencias por día',
+                data: {{ coincidencias_data|safe }},
+                backgroundColor: '#4CAF50'
+            }]
+        },
+        options: commonOptions
+    });
+</script>
+</body>
+</html>

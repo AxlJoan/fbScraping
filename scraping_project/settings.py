@@ -78,6 +78,15 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+
+    'fb_scrap': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'fb_scrap',
+        'USER': 'admin',
+        'PASSWORD': 'S3gur1d4d2025',
+        'HOST': '158.69.26.160',
+        'PORT': '3306',
     }
 }
 

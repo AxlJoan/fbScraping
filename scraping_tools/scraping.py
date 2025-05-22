@@ -3,10 +3,50 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 import pandas as pd
 import os
 import random
+import mysql.connector
+from mysql.connector import Error
+from datetime import datetime
+
+# Conectar a la base de datos fb_scrap y guardar comentarios
+def guardar_comentarios_en_db(comentarios, post_url, nombre_pagina):
+    try:
+        conexion = mysql.connector.connect(
+            host='158.69.26.160',
+            user='admin',
+            password='S3gur1d4d2025',
+            database='fb_scrap'
+        )
+        cursor = conexion.cursor()
+
+        query = """
+            INSERT IGNORE INTO comentarios 
+            (post_url, usuario, comentario, fecha, usuario_url, nombre_pagina)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        datos = []
+        for c in comentarios:
+            datos.append((
+                post_url,
+                c["nombre"],
+                c["texto"],
+                datetime.now(),
+                c["perfil"],
+                nombre_pagina
+            ))
+        cursor.executemany(query, datos)
+        conexion.commit()
+        print(f"{cursor.rowcount} comentarios insertados.")
+    except Exception as e:
+        print(f"Error al insertar comentarios: {e}")
+    finally:
+        if conexion.is_connected():
+            cursor.close()
+            conexion.close()
 
 def ejecutar_scraping(url_publicacion):
     comentarios_extraidos = []
@@ -52,15 +92,29 @@ def ejecutar_scraping(url_publicacion):
         login_button.click()
         
         # Esperar a que cargue la página principal
-        WebDriverWait(driver, 30).until(
-            EC.any_of(
-                EC.presence_of_element_located((By.XPATH, '//div[contains(@aria-label, "¿Qué estás pensando?")]')),
-                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "¿Qué estás pensando?")]')),
-                EC.presence_of_element_located((By.XPATH, '//*[contains(@aria-label, "Crear")]'))
+        print("Esperando que cargue la página principal...")
+        try:
+            WebDriverWait(driver, 30).until(
+                EC.any_of(
+                    EC.presence_of_element_located((By.XPATH, '//div[contains(@aria-label, "¿Qué estás pensando?")]')),
+                    EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "¿Qué estás pensando?")]')),
+                    EC.presence_of_element_located((By.XPATH, '//*[contains(@aria-label, "Crear")]'))
+                )
             )
-        )
+            print("Página principal cargada correctamente")
+        except TimeoutException:
+            print("No se detectó la interfaz principal, pero continuando...")
+        
+        # Manejar posibles notificaciones emergentes
+        try:
+            actions = ActionChains(driver)
+            actions.move_by_offset(100, 100).click().perform()
+            time.sleep(1)
+        except:
+            print("No fue necesario cerrar notificaciones")
         
         # Ir a la publicación directamente
+        print(f"Navegando a la publicación: {url_publicacion}")
         driver.get(url_publicacion)
         time.sleep(5)
         
@@ -101,7 +155,7 @@ def ejecutar_scraping(url_publicacion):
         # Scroll para cargar todos los comentarios
         print("Iniciando scroll mejorado para cargar todos los comentarios...")
         num_comentarios_anterior = 0
-        max_intentos_sin_cambio = 4
+        max_intentos_sin_cambio = 2
         intentos_sin_cambio = 0
         max_intentos_totales = 50
         
@@ -368,11 +422,12 @@ def ejecutar_scraping(url_publicacion):
                 
             except Exception as e:
                 print(f"Error al procesar comentario #{i+1}: {str(e)}")
-        
+            
         # Guardar los comentarios en un archivo Excel
         if comentarios_extraidos:
             try:
                 # Crear un DataFrame con pandas
+                guardar_comentarios_en_db(comentarios_extraidos, url_publicacion)
                 df = pd.DataFrame(comentarios_extraidos)
                 
                 # Intentar guardar como Excel con ruta absoluta

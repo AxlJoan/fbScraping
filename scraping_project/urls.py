@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from scraping_app import views
+from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.index, name='index'),
+    path('', lambda request: redirect('login'), name='root_redirect'),
+    path('index/', views.index, name='index'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('register/', views.register_view, name='register'),
     path('exportar-csv/', views.exportar_csv, name='exportar_csv'),
     path('exportar-pdf/', views.exportar_pdf, name='exportar_pdf'),
