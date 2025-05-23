@@ -16,7 +16,7 @@ cursor_fuente = conexion_fuente.cursor(dictionary=True)
 cursor_fuente.execute("""
     SELECT URL_Post, Nombre_Pagina
     FROM clientes_facebook
-    WHERE DATE(Fecha) = CURDATE()
+    WHERE STR_TO_DATE(Fecha, '%d-%m-%Y') = CURDATE();
 """)
 posts = cursor_fuente.fetchall()
 print(f"Se encontraron {len(posts)} publicaciones para procesar.")

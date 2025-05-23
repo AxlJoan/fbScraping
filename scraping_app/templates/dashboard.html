@@ -89,12 +89,196 @@
 
     /* Sidebar fija a la izquierda */
     .sidebar {
-    flex: 0 0 260px; /* ancho fijo */
-    background-color: var(--container-bg);
-    padding: 1.5rem;
-    border-radius: 0 12px 12px 0; /* esquinas redondeadas solo a la derecha */
-    box-shadow: 0 2px 8px var(--container-shadow);
-    min-height: 100vh; /* asegura que tenga el alto completo */
+      flex: 0 0 260px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-layout {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      height: var(--sidebar-header-height);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .pro-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pro-sidebar-logo div {
+      width: 30px;
+      height: 30px;
+      background-color: var(--sidebar-text-hover);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-content {
+      flex-grow: 1;
+      padding: 10px 0;
+      overflow-y: auto;
+    }
+
+    /* Estilos del menú */
+    .menu {
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .menu-header {
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 15px 20px 5px;
+        color: #7f8c8d;
+        font-weight: 600;
+      }
+      
+      .menu-item {
+        a {
+          display: flex;
+          align-items: center;
+          padding: 12px 20px;
+          color: var(--sidebar-text);
+          text-decoration: none;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            color: var(--sidebar-text-hover);
+            background-color: rgba(0,0,0,0.03);
+            
+            .menu-icon {
+              color: var(--sidebar-text-hover);
+            }
+          }
+        }
+        
+        .menu-icon {
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 10px;
+          color: #7f8c8d;
+          transition: all 0.3s ease;
+        }
+        
+        .menu-title {
+          flex-grow: 1;
+        }
+        
+        &.sub-menu {
+          position: relative;
+          
+          > a::after {
+            content: '›';
+            transition: transform 0.3s;
+            margin-left: auto;
+          }
+          
+          &.open > a::after {
+            transform: rotate(90deg);
+          }
+          
+          > .sub-menu-list {
+            display: none;
+            background-color: transparent; /* <-- más limpio */
+            
+            .menu-item a {
+              border-radius: 6px; /* opcional, pero más limpio visualmente */
+              margin: 2px 10px; /* añade un poco de separación entre ítems */
+            }
+          }
+          
+          &.open > .sub-menu-list {
+            display: block;
+          }
+        }
+      }
+    }
+
+    /* Formularios dentro del menú */
+    .menu .form-group {
+      margin-bottom: 15px;
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 0.8em;
+        color: #7f8c8d;
+      }
+      
+      input, select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+      }
+    }
+
+    /* Modo oscuro */
+    body.dark-mode {
+      --sidebar-bg: #242526;
+      --sidebar-text: #e4e6eb;
+      --sidebar-text-hover: #1877f2;
+      --sidebar-icon-bg: #3a3b3c;
+      
+      .sidebar-header {
+        border-bottom-color: rgba(255,255,255,0.1);
+      }
+      
+      .menu {
+        .menu-header {
+          color: #b0b3b8;
+        }
+        
+        .menu-item {
+          a:hover {
+            background-color: rgba(255,255,255,0.05);
+          }
+          
+          .menu-icon {
+            color: #b0b3b8;
+          }
+        }
+        
+        .sub-menu > .sub-menu-list {
+          background-color: transparent !important;  /* ✔ Elimina fondo gris oscuro */
+          margin: 0;
+          padding: 0;
+          border: none;
+          box-shadow: none;
+        }
+      }
+      
+      .menu .form-group {
+        label {
+          color: #b0b3b8;
+        }
+        
+        input, select {
+          background-color: #3a3b3c;
+          border-color: #4e4f50;
+          color: #e4e6eb;
+        }
+      }
     }
 
     /* Contenido principal */
@@ -112,6 +296,7 @@
       color: var(--fb-blue);
       margin-bottom: 1.5rem;
     }
+    
 
     /* Buttons */
     button, .logout {
@@ -316,6 +501,112 @@
       font-size: 14px;
     }
 
+    /* Botón de colapso - EXTERNO al sidebar */
+    .sidebar-toggler.break-point-sm {
+      position: fixed;
+      top: 0px;
+      left: 260px; /* Ancho del sidebar + margen */
+      width: 30px;
+      height: 30px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 101;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border: none;
+      color: var(--fb-blue);
+      transition: all 0.3s ease;
+      margin-left: 15px; /* Margen constante que deseas */
+    }
+
+    /* Cuando el sidebar está colapsado */
+    .sidebar.collapsed + .sidebar-toggler.break-point-sm {
+      left: 0; /* Se mueve junto al borde */
+      transform: rotate(180deg); /* Rota la flecha */
+      margin-left: 15px; /* Mantiene el margen */
+    }
+
+    @media (max-width: 768px) {
+      .sidebar-collapser {
+        display: none !important;
+      }
+    }
+
+    .sidebar-toggler {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      width: 40px;
+      border-radius: 50%;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .sidebar-toggler:hover {
+      background-color: var(--sidebar-text-hover);
+      color: white;
+    }
+
+    /* Overlay para cuando el sidebar está abierto en móvil */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+      display: none;
+    }
+
+    /* Estilos para el sidebar colapsado */
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+      position: fixed;
+      z-index: 100;
+    }
+
+    .dashboard-layout {
+      transition: all 0.3s ease;
+    }
+
+    /* Mostrar botón de toggle solo en móvil */
+    @media (max-width: 768px) {
+      .sidebar-toggler {
+        display: flex;
+      }
+      
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar.toggled {
+        transform: translateX(0);
+      }
+      
+      .sidebar.collapsed {
+        transform: translateX(-100%);
+      }
+      
+      .overlay.visible {
+        display: block;
+      }
+    }
+
     /* Loading screen */
     #loading-screen {
       position: fixed;
@@ -396,58 +687,148 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <body>
   <div class="dashboard-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h2><i class="fas fa-filter"></i> Filtros</h2>
-      <form method="get" action=".">
-        <div class="form-group">
-          <label for="desde">Desde</label>
-          <input type="date" id="desde" name="desde" value="{{ filtros.desde }}">
+  <!-- Sidebar estilo Pro Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-layout">
+      <div class="sidebar-header">
+        <div class="pro-sidebar-logo">
+          <div><i class="fas fa-filter"></i></div>
+          <h5>Filtros Avanzados</h5>
         </div>
-        <div class="form-group">
-          <label for="hasta">Hasta</label>
-          <input type="date" id="hasta" name="hasta" value="{{ filtros.hasta }}">
-        </div>
+      </div>
+      
+      <div class="sidebar-content">
+        <nav class="menu open-current-submenu">
+          <ul>
+            <li class="menu-header"><span>FILTROS PRINCIPALES</span></li>
+            
+            <li class="menu-item sub-menu">
+              <a href="#">
+                <span class="menu-icon">
+                  <i class="fas fa-calendar-alt"></i>
+                </span>
+                <span class="menu-title">Rango de fechas</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                  <li class="menu-item">
+                    <form method="get" action="." style="padding: 0 15px;">
+                      <div class="form-group">
+                        <label for="desde">Desde</label>
+                        <input type="date" id="desde" name="desde" value="{{ filtros.desde }}">
+                      </div>
+                      <div class="form-group">
+                        <label for="hasta">Hasta</label>
+                        <input type="date" id="hasta" name="hasta" value="{{ filtros.hasta }}">
+                      </div>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </li>
 
-        {% if is_staff %}
-        <div class="form-group">
-          <label for="cliente">Cliente</label>
-          <select id="cliente" name="cliente">
-            <option value="">-- Todos --</option>
-            {% for c in clientes %}
-              <option value="{{ c.id }}" {% if c.id == filtros.cliente_id %}selected{% endif %}>{{ c.nombre }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        {% endif %}
-        <div class="form-group">
-            <label for="palabra_clave">Palabra clave</label>
-            <input type="text" id="palabra_clave" name="palabra_clave" value="{{ filtros.palabra_clave }}">
-        </div>
+            {% if is_staff %}
+            <li class="menu-item sub-menu">
+              <a href="#">
+                <span class="menu-icon">
+                  <i class="fas fa-building"></i>
+                </span>
+                <span class="menu-title">Filtro por cliente</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                  <li class="menu-item">
+                    <form method="get" action="." style="padding: 0 15px;">
+                      <div class="form-group">
+                        <select id="cliente" name="cliente" style="width: 100%;">
+                          <option value="">-- Todos los clientes --</option>
+                          {% for c in clientes %}
+                            <option value="{{ c.id }}" {% if c.id == filtros.cliente_id %}selected{% endif %}>{{ c.nombre }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            {% endif %}
 
-        <div class="form-group">
-            <label for="empleado">Empleado</label>
-            <select id="empleado" name="empleado">
-                <option value="">-- Todos --</option>
-                {% for e in empleados %}
-                <option value="{{ e.id }}" {% if e.id == filtros.empleado_id %}selected{% endif %}>{{ e.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
+            <li class="menu-item sub-menu">
+              <a href="#">
+                <span class="menu-icon">
+                  <i class="fas fa-search"></i>
+                </span>
+                <span class="menu-title">Búsqueda</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                  <li class="menu-item">
+                    <form method="get" action="." style="padding: 0 15px;">
+                      <div class="form-group">
+                        <label for="palabra_clave">Palabra clave</label>
+                        <input type="text" id="palabra_clave" name="palabra_clave" value="{{ filtros.palabra_clave }}">
+                      </div>
+                      <div class="form-group">
+                        <label for="empleado">Empleado</label>
+                        <select id="empleado" name="empleado" style="width: 100%;">
+                          <option value="">-- Todos los empleados --</option>
+                          {% for e in empleados %}
+                          <option value="{{ e.id }}" {% if e.id == filtros.empleado_id %}selected{% endif %}>{{ e.nombre }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            
+            <li class="menu-header" style="padding-top: 20px"><span>ACCIONES</span></li>
+            
+            <li class="menu-item">
+              <a href="#" id="applyFiltersBtn">
+                <span class="menu-icon">
+                  <i class="fas fa-check-circle"></i>
+                </span>
+                <span class="menu-title">Aplicar filtros</span>
+              </a>
+            </li>
+            
+            <li class="menu-item">
+              <a href="#" id="modeToggle">
+                <span class="menu-icon">
+                  <i class="fas fa-moon"></i>
+                </span>
+                <span class="menu-title">Modo oscuro</span>
+              </a>
+            </li>
+            
+            <li class="menu-item">
+              <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <a href="#" onclick="this.closest('form').submit(); return false;">
+                  <span class="menu-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                  </span>
+                  <span class="menu-title">Cerrar sesión</span>
+                </a>
+              </form>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </aside>
 
-        <button type="submit"><i class="fas fa-search"></i> Aplicar filtros</button>
-        <button type="button" class="toggle-mode" id="modeToggle">
-            <i class="fas fa-moon"></i> Alternar modo oscuro
-        </button>
-      </form>
-      <form method="post" action="{% url 'logout' %}" style="margin-top: 2rem;">
-        {% csrf_token %}
-        <button type="submit" class="logout">Cerrar sesión</button>
-      </form>
-    </aside>
+  <!-- Botón EXTERNO al sidebar -->
+  <a id="btn-collapse" class="sidebar-toggler break-point-sm" aria-label="Toggle sidebar">
+    <i class="fas fa-chevron-left"></i>
+  </a>
 
     <!-- Main content -->
     <main class="main-content">
+      
       <h1>Dashboard</h1>
 
       <!-- Métricas -->
@@ -528,7 +909,7 @@
       <!-- Tabla comentarios -->
       <section class="table-container">
         <h2>Comentarios generales</h2>
-        <table class="data-table" data-items-per-page="20" data-animate="true">
+        <table class="data-table" data-items-per-page="50" data-animate="true">
           <thead>
             <tr>
               <th>Usuario</th>
@@ -555,6 +936,8 @@
       </section>
     </main>
   </div>
+  
+
 
   <!-- Paginación JS -->
   <script>
@@ -668,6 +1051,52 @@
     if (savedMode) document.body.classList.add("dark-mode");
     updateModeText(savedMode);
 
+    // Funcionalidad del sidebar (del nuevo script)
+    document.querySelectorAll('.menu-item.sub-menu > a').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const parent = this.parentElement;
+            parent.classList.toggle('open');
+            
+            if (parent.classList.contains('open')) {
+                const siblings = Array.from(parent.parentElement.children)
+                    .filter(child => child !== parent && child.classList.contains('sub-menu'));
+                
+                siblings.forEach(sibling => {
+                    sibling.classList.remove('open');
+                });
+            }
+        });
+    });
+
+    // Aplicar filtros
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = document.querySelector('form[method="get"]');
+            if (form) form.submit();
+        });
+    }
+    
+    // Colapsar/expandir sidebar
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.toggle('collapsed');
+        });
+    }
+
+    // Colapsar/expandir sidebar
+    const btnCollapse = document.getElementById('btn-collapse');
+    if (btnCollapse) {
+        btnCollapse.addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.toggle('collapsed');
+        });
+    }
+
     // Asignar evento al botón de modo oscuro
     const toggleButton = document.getElementById("modeToggle");
     if (toggleButton) {
@@ -758,5 +1187,6 @@
         options: commonOptions
     });
 </script>
+
 </body>
 </html>
