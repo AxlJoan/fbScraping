@@ -76,11 +76,6 @@ WSGI_APPLICATION = 'scraping_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-
-    'fb_scrap': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'fb_scrap',
         'USER': 'admin',

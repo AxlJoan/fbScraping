@@ -21,6 +21,8 @@ from selenium.webdriver.common.by import By
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
+from .models import UserProfile
+from .roles import ADMIN_ROLE, VIEWER
 
 def guardar_coincidencias_bd(coincidencias_df, post_url):
     try:
@@ -127,9 +129,20 @@ def register_view(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
+        role = request.POST['role']
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Ese usuario ya existe.')
+            return render(request, 'scraping_app/register.html')
+
         user = User.objects.create_user(username=username, password=password)
+        UserProfile.objects.create(user=user, role=role)  # Asocia rol
+
+        # Crear Cliente asociado, por ejemplo usando username para nombre_pagina
+        Clientes.objects.create(user=user, nombre_pagina=username)
+
         login(request, user)
-        return redirect('index')
+        return redirect('login')  # O redirige a donde quieras
     return render(request, 'scraping_app/register.html')
 
 def exportar_csv(request):
@@ -264,7 +277,7 @@ from datetime import datetime
 def exportar_pdf(request):
     url_publicacion = request.GET.get('post_url')
     
-    coincidencias_qs = Coincidencias.objects.using('fb_scrap').select_related('comentario', 'empleado')
+    coincidencias_qs = Coincidencias.objects.select_related('comentario', 'empleado')
     if url_publicacion:
         coincidencias_qs = coincidencias_qs.filter(post_url=url_publicacion)
     
@@ -322,7 +335,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 def exportar_word(request):
     url_publicacion = request.GET.get('post_url')
 
-    coincidencias_qs = Coincidencias.objects.using('fb_scrap').select_related('comentario', 'empleado')
+    coincidencias_qs = Coincidencias.objects.select_related('comentario', 'empleado')
     if url_publicacion:
         coincidencias_qs = coincidencias_qs.filter(post_url=url_publicacion)
 
@@ -387,27 +400,45 @@ def dashboard(request):
     palabra_clave = request.GET.get('palabra_clave')
     empleado_id = request.GET.get('empleado')
 
+    user = request.user
+    user_profile = UserProfile.objects.get(user=user)
     filtros = {}
-    comentarios_qs = Comentarios.objects.using('fb_scrap').all()
-    coincidencias_qs = Coincidencias.objects.using('fb_scrap').all()
+    comentarios_qs = Comentarios.objects.all()
+    coincidencias_qs = Coincidencias.objects.all()
+
+    # 1. Determinar el nombre del cliente según el tipo de usuario
+    if user.is_authenticated:
+        if user_profile.role == ADMIN_ROLE:
+            # Admin puede elegir cliente desde GET, o dejarlo sin filtro
+            cliente_id = request.GET.get('cliente')
+            if cliente_id:
+                nombre_cliente = Clientes.objects.filter(id=cliente_id).values_list('nombre_pagina', flat=True).first()
+                filtros['cliente_id'] = int(cliente_id)
+            else:
+                nombre_cliente = None  # Si no seleccionó ninguno
+                filtros['cliente_id'] = None
+        else:
+            # Usuario normal: usar cliente asociado
+            cliente_obj = getattr(user, 'cliente', None)
+            nombre_cliente = cliente_obj.nombre_pagina if cliente_obj else None
+    else:
+        nombre_cliente = None
+
+    # 2. Aplicar filtro de cliente si hay nombre_cliente
+    if nombre_cliente:
+        comentarios_qs = comentarios_qs.filter(nombre_pagina=nombre_cliente)
+        coincidencias_qs = coincidencias_qs.filter(comentario__nombre_pagina=nombre_cliente)
 
     # Filtro fechas
     if desde_str:
         comentarios_qs = comentarios_qs.filter(fecha__gte=desde_str)
         coincidencias_qs = coincidencias_qs.filter(fecha__gte=desde_str)
         filtros['desde'] = desde_str
+
     if hasta_str:
         comentarios_qs = comentarios_qs.filter(fecha__lte=hasta_str)
         coincidencias_qs = coincidencias_qs.filter(fecha__lte=hasta_str)
         filtros['hasta'] = hasta_str
-
-    # Filtro cliente (solo si usuario staff y cliente seleccionado)
-    if request.user.is_staff and cliente_id:
-        nombre_cliente = Clientes.objects.filter(id=cliente_id).values_list('nombre_pagina', flat=True).first()
-        if nombre_cliente:
-            comentarios_qs = comentarios_qs.filter(nombre_pagina=nombre_cliente)
-            coincidencias_qs = coincidencias_qs.filter(comentario__nombre_pagina=nombre_cliente)
-            filtros['cliente_id'] = int(cliente_id)
 
     # Filtro palabra clave (busca texto en comentarios)
     if palabra_clave:
@@ -466,8 +497,8 @@ def dashboard(request):
     context = {
         'filtros': filtros,
         'is_staff': request.user.is_staff,
-        'clientes': Clientes.objects.using('fb_scrap').all() if request.user.is_staff else [],
-        'empleados': Empleados.objects.using('fb_scrap').all(),
+        'clientes': Clientes.objects.all() if user_profile.role == ADMIN_ROLE else [],
+        'empleados': Empleados.objects.all(),
         'no_empleados': total_no_empleados,
         'total_comentarios': total_comentarios,
         'total_coincidencias': total_coincidencias,
@@ -477,6 +508,7 @@ def dashboard(request):
         'coincidencias': coincidencias,
         'coincidencias_labels': coincidencias_labels,
         'coincidencias_data': coincidencias_por_dia,
+        'user_role': user_profile.role,
     }
 
     return render(request, 'dashboard.html', context)

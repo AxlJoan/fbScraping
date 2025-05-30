@@ -61,6 +61,20 @@
       border-radius: 5px;
     }
 
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border: 1px solid var(--fb-border);
+      border-radius: 5px;
+    }
+
+    body.dark-mode select {
+      background-color: #3a3b3c;
+      color: #e4e6eb;
+      border: 1px solid #555;
+    }
+
     body.dark-mode input {
       background-color: #3a3b3c;
       color: #e4e6eb;
@@ -179,13 +193,26 @@
 
   <div class="container">
     <h2>Registro</h2>
+
+      {% if messages %}
+        <ul style="color: red; text-align: left;">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
     <form method="POST">
       {% csrf_token %}
       <input type="text" name="username" placeholder="Usuario" required><br>
       <input type="password" name="password" placeholder="Contraseña" required><br>
+      <select name="role" required>
+        <option value="administrador">Administrador</option>
+        <option value="visualizador">Visualizador</option>
+      </select>
       <button type="submit">Registrar</button>
     </form>
-    <p>¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+    <p><a href="{% url 'login' %}">Inicia sesión</a></p>
     <button class="toggle-mode" onclick="toggleDarkMode()" id="modeToggle">🌙 Modo oscuro</button>
   </div>
 
