@@ -447,9 +447,10 @@ def dashboard(request):
         filtros['palabra_clave'] = palabra_clave
 
     # Filtro empleado (por coincidencias)
-    if empleado_id:
-        coincidencias_qs = coincidencias_qs.filter(empleado__id=empleado_id)
-        filtros['empleado_id'] = int(empleado_id)
+    empleado_nombre = request.GET.get('empleado')
+    if empleado_nombre:
+        coincidencias_qs = coincidencias_qs.filter(empleado__nombre__icontains=empleado_nombre)
+        filtros['empleado'] = empleado_nombre
 
     # Métricas
     total_comentarios = comentarios_qs.count()
