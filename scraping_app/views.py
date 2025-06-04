@@ -484,6 +484,7 @@ def dashboard(request):
         'texto': c.comentario,
         'fecha': c.fecha,
         'post_url': c.post_url,
+        'nombre_pagina': c.nombre_pagina,
     } for c in comentarios_data]
 
     coincidencias = [{
@@ -492,6 +493,7 @@ def dashboard(request):
         'texto': c.comentario.comentario if c.comentario else 'Comentario no disponible',
         'fecha': c.fecha,
         'post_url': c.post_url,
+        'nombre_pagina': c.comentario.nombre_pagina if c.comentario else 'Desconocido',
     } for c in coincidencias_data]
 
     context = {

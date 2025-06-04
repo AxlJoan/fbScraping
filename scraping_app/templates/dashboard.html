@@ -127,6 +127,7 @@
     }
 
     .sidebar-content {
+      padding-top: 2px;
       flex-grow: 1;
       padding: 10px 0;
       overflow-y: auto;
@@ -403,8 +404,8 @@
 
     /* Forms */
     form {
-      margin-top: 20px;
-      padding: 20px;
+      margin-top: 1px;
+      padding: 1px;
       border-radius: 10px;
       background-color: transparent;
       box-shadow: 0 2px 8px var(--container-shadow);
@@ -744,8 +745,8 @@
     <div class="sidebar-layout">
       <div class="sidebar-header">
         <div class="pro-sidebar-logo">
-          <div><i class="fas fa-filter"></i></div>
-          <h5>Filtros Avanzados</h5>
+          <div><i class="fas fa-bars"></i></div>
+          <h5>MENÚ PRINCIPAL</h5>
         </div>
       </div>
       
@@ -753,11 +754,11 @@
       <form method="get" action="."> <!-- Aquí unificas -->
         <nav class="menu open-current-submenu">
           <ul>
-            <li class="menu-header"><span>FILTROS PRINCIPALES</span></li>
+            <li class="menu-header"><span>FILTROS DE BÚSQUEDA</span></li>
 
             <li class="menu-item sub-menu">
               <a href="#">
-                <span class="menu-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span class="menu-icon"><i class="fa-regular fa-calendar"></i></span>
                 <span class="menu-title">Rango de fechas</span>
               </a>
               <div class="sub-menu-list">
@@ -779,7 +780,7 @@
             {% if user_role == "administrador" %}
             <li class="menu-item sub-menu">
               <a href="#">
-                <span class="menu-icon"><i class="fas fa-building"></i></span>
+                <span class="menu-icon"><i class="fa-solid fa-user-tie"></i></span>
                 <span class="menu-title">Filtro por cliente</span>
               </a>
               <div class="sub-menu-list">
@@ -838,25 +839,13 @@
             
             <li class="menu-item">
               <a href="#" id="modeToggle">
-                <span class="menu-icon">
+                <span class="menu-icon" id="modeIcon">
                   <i class="fas fa-moon"></i>
                 </span>
-                <span class="menu-title">Modo oscuro</span>
+                <span class="menu-title" id="modeText">Modo oscuro</span>
               </a>
             </li>
             
-            <li class="menu-item">
-              <form method="post" action="{% url 'logout' %}" style="display: inline;" class="logout-form">
-                {% csrf_token %}
-                <a href="#" onclick="this.closest('form').submit(); return false;">
-                  <span class="menu-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                  </span>
-                  <span class="menu-title">Cerrar sesión</span>
-                </a>
-              </form>
-            </li>
-
             {% if user_role == "administrador" %}
               <!-- Aquí va el botón o link para registrar -->
               <li class="menu-item">
@@ -867,6 +856,23 @@
               </li>
             {% endif %}
 
+          </ul>
+        </nav>
+       </form>
+        <!-- FORMULARIO DE CIERRE DE SESIÓN (fuera del anterior) -->
+        <nav class="menu open-current-submenu">
+          <ul>
+            <li class="menu-item">
+              <form method="post" action="{% url 'logout' %}" class="logout-form" style="display: inline;">
+                {% csrf_token %}
+                <a href="#" onclick="this.closest('form').submit(); return false;">
+                  <span class="menu-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                  </span>
+                  <span class="menu-title">Cerrar sesión</span>
+                </a>
+              </form>
+            </li>
           </ul>
         </nav>
       </div>
@@ -1167,10 +1173,16 @@
     }
 
     function updateModeText(isDark) {
-    const toggleButton = document.getElementById("modeToggle");
-    if (toggleButton) {
-        toggleButton.textContent = isDark ? "☀️ Modo claro" : "🌙 Modo oscuro";
-    }
+        const iconSpan = document.getElementById("modeIcon");
+        const textSpan = document.getElementById("modeText");
+
+        if (iconSpan && textSpan) {
+            iconSpan.innerHTML = isDark 
+                ? '<i class="fas fa-sun"></i>' 
+                : '<i class="fas fa-moon"></i>';
+            
+            textSpan.textContent = isDark ? "Modo claro" : "Modo oscuro";
+        }
     }
 
     function applyLoadingModeStyle() {
